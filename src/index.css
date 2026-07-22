@@ -257,14 +257,122 @@ body {
 .editor-container {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Page Width Scale Bar */
+.width-scale-bar {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  padding: 0.25rem 0.8rem;
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow-sm);
+  font-size: 0.76rem;
+  color: var(--text-mid);
+  flex-shrink: 0;
+}
+
+.width-scale-left {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.scale-icon {
+  color: var(--ink);
+}
+
+.scale-label {
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+}
+
+.scale-value {
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 32px;
+}
+
+.width-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 130px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.width-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.width-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.width-scale-presets {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.preset-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-mid);
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.12rem 0.4rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.preset-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.preset-btn.active {
+  background: var(--bg-paper);
+  border-color: var(--line);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.preset-btn.reset-btn {
+  color: var(--text-faint);
+  margin-left: 0.2rem;
 }
 
 .paper-sheet {
-  width: 100%;
-  max-width: 750px;
+  width: 90%;
+  max-width: 100%;
+  transition: width 0.15s ease-out;
   background: var(--bg-paper);
   border: 1px solid var(--line);
   border-radius: 2px;

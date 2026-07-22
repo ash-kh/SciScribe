@@ -1,14 +1,11 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, MoveHorizontal, RotateCcw } from 'lucide-react';
 import { extractPaperIdentifiers, DOI_REGEX, ARXIV_REGEX } from '../utils/doiDetector';
 
 /**
  * Build a combined regex that matches DOIs and arXiv IDs in text.
  */
 function buildDoiHighlightRegex() {
-  // Match DOIs like 10.1038/s41586-021-03819-2
-  // Match arXiv IDs like arXiv:1706.03762
-  // Match parenthetical citations that contain DOIs: (Author et al. 10.xxxx/yyyy)
   return /(\b10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+\b)|(\b(?:arXiv:\s*)\d{4}\.\d{4,5}(?:v\d+)?\b)/gi;
 }
 
@@ -25,7 +22,6 @@ function renderHighlightedText(text, onDoiClick) {
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    // Add plain text before this match
     if (match.index > lastIndex) {
       elements.push(
         <span key={`t-${lastIndex}`}>{text.slice(lastIndex, match.index)}</span>
@@ -56,7 +52,6 @@ function renderHighlightedText(text, onDoiClick) {
     lastIndex = match.index + matchedText.length;
   }
 
-  // Add remaining text after last match
   if (lastIndex < text.length) {
     elements.push(
       <span key={`t-${lastIndex}`}>{text.slice(lastIndex)}</span>
@@ -82,6 +77,18 @@ export default function Editor({
   const overlayRef = useRef(null);
   const containerRef = useRef(null);
   const savedCursorRef = useRef({ start: 0, end: 0 });
+
+  // Page width percent state (default 90% of available workspace width)
+  const [pageWidthPercent, setPageWidthPercent] = useState(() => {
+    const saved = localStorage.getItem('sciscribe_page_width');
+    return saved ? parseInt(saved, 10) : 90;
+  });
+
+  const handleWidthChange = (newVal) => {
+    const val = Math.min(100, Math.max(50, newVal));
+    setPageWidthPercent(val);
+    localStorage.setItem('sciscribe_page_width', val.toString());
+  };
 
   // Combine all sections into a single continuous document string for editing
   const getFullBody = useCallback(() => {
@@ -233,7 +240,65 @@ export default function Editor({
 
   return (
     <div className="editor-container">
-      <div className="paper-sheet">
+      {/* Top Page Width Scale Bar */}
+      <div className="width-scale-bar">
+        <div className="width-scale-left">
+          <MoveHorizontal size={13} className="scale-icon" />
+          <span className="scale-label">Width Scale:</span>
+          <span className="scale-value">{pageWidthPercent}%</span>
+        </div>
+
+        <input 
+          type="range"
+          min="50"
+          max="100"
+          step="1"
+          className="width-slider"
+          value={pageWidthPercent}
+          onChange={(e) => handleWidthChange(parseInt(e.target.value, 10))}
+          title="Adjust manuscript page width relative to available space"
+        />
+
+        <div className="width-scale-presets">
+          <button 
+            type="button" 
+            className={`preset-btn ${pageWidthPercent === 70 ? 'active' : ''}`}
+            onClick={() => handleWidthChange(70)}
+          >
+            70%
+          </button>
+          <button 
+            type="button" 
+            className={`preset-btn ${pageWidthPercent === 90 ? 'active' : ''}`}
+            onClick={() => handleWidthChange(90)}
+          >
+            90% (Default)
+          </button>
+          <button 
+            type="button" 
+            className={`preset-btn ${pageWidthPercent === 100 ? 'active' : ''}`}
+            onClick={() => handleWidthChange(100)}
+          >
+            100%
+          </button>
+          {pageWidthPercent !== 90 && (
+            <button 
+              type="button" 
+              className="preset-btn reset-btn"
+              onClick={() => handleWidthChange(90)}
+              title="Reset to 90% default width"
+            >
+              <RotateCcw size={10} /> Reset
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Writing Paper Sheet */}
+      <div 
+        className="paper-sheet"
+        style={{ width: `${pageWidthPercent}%`, maxWidth: '100%' }}
+      >
         {/* Title */}
         <input 
           type="text"
