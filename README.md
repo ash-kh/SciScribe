@@ -32,12 +32,19 @@
 
 ## 🚀 Getting Started
 
-### macOS Double-Click Launchers
-SciScribe includes pre-configured double-clickable macOS launchers right in the project root:
+### macOS & Windows Launchers
+SciScribe includes double-clickable launchers for both macOS and Windows in the project root:
 
-- **`SciScribe.app`**: Native macOS application bundle. Double-click to launch the background server and open SciScribe in your default web browser.
-- **`Open SciScribe.command`**: Terminal launcher with live status logs.
-- **`Stop SciScribe.command`**: Quickly stop any background SciScribe server.
+- **macOS**:
+  - **`SciScribe.app`**: Native macOS application bundle. Double-click to launch the server and open SciScribe in your default web browser.
+  - **`Open SciScribe.command`**: Terminal launcher script.
+  - **`Stop SciScribe.command`**: Stop background server.
+
+- **Windows**:
+  - **`SciScribe.exe`**: Native Windows executable launcher. Double-click to run silently without console windows.
+  - **`SciScribe.vbs`**: Silent VBScript launcher.
+  - **`Open-SciScribe.bat`**: Command prompt launcher with live logs.
+  - **`Stop-SciScribe.bat`**: Stop background server on Windows.
 
 ### Running via Terminal / CLI
 
