@@ -15,7 +15,8 @@ import {
   Download,
   ListOrdered,
   ChevronDown,
-  SaveAll
+  SaveAll,
+  ArrowLeftRight
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -160,8 +161,8 @@ export default function Navbar({
         <button className="btn btn-ghost" onClick={onOpenReviewModal} title="Review author mentions (Smith et al.) and auto-link DOIs">
           <CheckCheck size={15} /> Review Mentions
         </button>
-        <button className="btn btn-ghost" onClick={onOpenRefResolver} title="Resolve numbered citations [1], [2,3] against References section">
-          <ListOrdered size={15} /> Resolve Refs
+        <button className="btn btn-ghost" onClick={onOpenRefResolver} title="Convert & resolve citations between Numbered [1] and Inline (Author et al. DOI)">
+          <ArrowLeftRight size={15} /> Convert / Resolve Refs
         </button>
         <button className="btn btn-ghost" onClick={onOpenQuickSearch} title="Search citations (⌥ Alt)">
           <Search size={15} />

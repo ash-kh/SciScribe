@@ -2,7 +2,8 @@
  * Reference Parser Utility
  * 
  * Parses numbered citations like [1], [2,3], [1-5] in body text and resolves
- * them against a References/Bibliography section at the end of the manuscript.
+ * them against a References/Bibliography section at the end of the manuscript,
+ * and vice-versa (Inline parenthetical citations -> Numbered [1], [2]).
  */
 
 import { DOI_REGEX, ARXIV_REGEX } from './doiDetector';
@@ -95,7 +96,6 @@ export function parseReferenceEntries(refText) {
 export function findNumberedCitations(text) {
   if (!text) return [];
 
-  // Match [numbers] where numbers can include commas, hyphens, en-dashes, spaces
   const citationPattern = /\[(\d+(?:\s*[,\-–]\s*\d+)*)\]/g;
   const results = [];
   let match;
@@ -141,9 +141,6 @@ function expandCitationNumbers(str) {
 /**
  * Given the manuscript sections, find numbered citations in the body and
  * resolve them against the reference section.
- * 
- * Returns array of resolvable citations:
- * [{ match, index, sectionId, sectionTitle, numbers, resolved: [{ number, refEntry }] }]
  */
 export function resolveAllNumberedCitations(sections) {
   const refText = findReferenceSection(sections);
@@ -154,7 +151,6 @@ export function resolveAllNumberedCitations(sections) {
   const citations = [];
 
   for (const section of sections) {
-    // Skip the references section itself
     if (/^(references|bibliography|works cited)/i.test(section.title.trim())) continue;
 
     const found = findNumberedCitations(section.content);
@@ -178,6 +174,106 @@ export function resolveAllNumberedCitations(sections) {
   }
 
   return { citations, refMap };
+}
+
+/**
+ * Find inline parenthetical citations in text that contain DOIs, arXiv IDs, or author strings.
+ * e.g. "(Jumper et al. 10.1038/s41586-021-03819-2)" or "(Vaswani et al. 1706.03762)"
+ */
+export function findInlineParentheticalCitations(sections) {
+  const results = [];
+
+  for (const section of sections) {
+    if (/^(references|bibliography|works cited)/i.test(section.title.trim())) continue;
+
+    const regex = /\(([^)\n]*?(?:10\.\d{4,9}\/|arXiv:\s*|1706\.|2\d{3}\.)[^)\n]*?)\)/gi;
+    let match;
+    while ((match = regex.exec(section.content)) !== null) {
+      const fullMatch = match[0];
+      const innerText = match[1];
+
+      const doiMatch = innerText.match(/10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+/i);
+      const arxivMatch = innerText.match(/(?:arXiv:\s*|1706\.|2\d{3}\.)(\d{4}\.\d{4,5}(?:v\d+)?)/i);
+
+      const identifier = doiMatch ? doiMatch[0].replace(/[.,;)]+$/, '') : (arxivMatch ? arxivMatch[1] : null);
+
+      if (identifier) {
+        results.push({
+          match: fullMatch,
+          innerText: innerText,
+          identifier: identifier,
+          sectionId: section.id,
+          sectionTitle: section.title,
+          index: match.index
+        });
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Converts all inline parenthetical citations (Smith et al. DOI) to numbered citations [1], [2]
+ * and generates/updates the References section.
+ */
+export function convertInlineToNumberedAll(sections, citationDatabase = []) {
+  const inlineCites = findInlineParentheticalCitations(sections);
+  if (inlineCites.length === 0) return { sections, count: 0 };
+
+  const idToNumber = new Map();
+  const refList = [];
+  let nextNum = 1;
+
+  for (const cite of inlineCites) {
+    const id = cite.identifier;
+    if (!idToNumber.has(id)) {
+      idToNumber.set(id, nextNum);
+
+      const dbEntry = citationDatabase.find(p => p.doi === id || p.id === id || p.arxivId === id);
+      
+      let refLine = '';
+      if (dbEntry) {
+        const authors = dbEntry.authors?.join(', ') || 'Author et al.';
+        refLine = `[${nextNum}] ${authors} (${dbEntry.year || '2024'}). ${dbEntry.title}. ${dbEntry.journal || ''}. DOI: ${id}`;
+      } else {
+        refLine = `[${nextNum}] ${cite.innerText.trim()} (DOI: ${id})`;
+      }
+
+      refList.push(refLine);
+      nextNum++;
+    }
+  }
+
+  const newSections = sections.map(sec => {
+    if (/^(references|bibliography|works cited)/i.test(sec.title.trim())) return sec;
+
+    let newContent = sec.content;
+    for (const cite of inlineCites) {
+      if (cite.sectionId === sec.id) {
+        const num = idToNumber.get(cite.identifier);
+        if (num) {
+          newContent = newContent.replace(cite.match, `[${num}]`);
+        }
+      }
+    }
+    return { ...sec, content: newContent };
+  });
+
+  const refContent = refList.join('\n');
+  const refIdx = newSections.findIndex(s => /^(references|bibliography|works cited)/i.test(s.title.trim()));
+
+  if (refIdx >= 0) {
+    newSections[refIdx] = { ...newSections[refIdx], content: refContent };
+  } else {
+    newSections.push({
+      id: 'sec-references',
+      title: 'References',
+      content: refContent
+    });
+  }
+
+  return { sections: newSections, count: inlineCites.length };
 }
 
 /**
