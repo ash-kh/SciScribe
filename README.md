@@ -6,7 +6,7 @@
 
 ## 🌟 Overview
 
-**SciScribe** is a specialized writing studio designed for researchers, academics, and scientific authors. Built around a focused, hay-colored vintage typewriter aesthetic, SciScribe combines distraction-free continuous writing with powerful academic reference tools.
+**SciScribe** is a specialized writing studio designed for researchers, academics, and scientific authors. Built around a focused vintage typewriter aesthetic, SciScribe combines distraction-free continuous writing with powerful academic reference tools.
 
 ![SciScribe Interface](src/assets/hero.png)
 
@@ -62,7 +62,7 @@ SciScribe includes pre-configured double-clickable macOS launchers right in the 
 ## 🛠️ Technology Stack
 
 - **Framework**: React 19 + Vite
-- **Styling**: Custom Hay-Colored Typewriter Design System (Vanilla CSS)
+- **Styling**: Custom Typewriter Design System (Vanilla CSS)
 - **Math Formatting**: KaTeX (`$E = mc^2$`)
 - **Icons**: Lucide React
 - **Academic APIs**: Europe PMC / PubMed, arXiv, CrossRef
