@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# ============================================================
+# SciScribe Launcher
+# This is the executable inside SciScribe.app.
+# It starts the Vite dev server and opens the browser.
+# ============================================================
+
+# --- Resolve paths ---
+# The .app bundle lives inside the project directory.
+# This script is at SciScribe.app/Contents/MacOS/SciScribe
+# So the project dir is three levels up from this script.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+# --- Set up PATH so we can find node/npm ---
+# Homebrew (Apple Silicon and Intel)
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
+# Source user shell profiles to pick up NVM, custom paths, etc.
+# (Silenced — these can produce warnings in non-interactive shells)
+[ -f "$HOME/.zshrc" ]         && source "$HOME/.zshrc"         2>/dev/null || true
+[ -f "$HOME/.bash_profile" ]  && source "$HOME/.bash_profile"  2>/dev/null || true
+[ -f "$HOME/.zprofile" ]      && source "$HOME/.zprofile"      2>/dev/null || true
+[ -f "$HOME/.profile" ]       && source "$HOME/.profile"       2>/dev/null || true
+
+# --- Verify node is available ---
+if ! command -v node &>/dev/null; then
+    osascript -e 'display dialog "SciScribe could not find Node.js.\n\nPlease install Node.js from https://nodejs.org and try again." buttons {"OK"} default button "OK" with title "SciScribe" with icon stop'
+    exit 1
+fi
+
+if ! command -v npm &>/dev/null; then
+    osascript -e 'display dialog "SciScribe could not find npm.\n\nPlease install Node.js from https://nodejs.org and try again." buttons {"OK"} default button "OK" with title "SciScribe" with icon stop'
+    exit 1
+fi
+
+# --- Change to project directory ---
+cd "$PROJECT_DIR" || {
+    osascript -e "display dialog \"Could not find the SciScribe project directory at:\n$PROJECT_DIR\" buttons {\"OK\"} default button \"OK\" with title \"SciScribe\" with icon stop"
+    exit 1
+}
+
+# --- Install dependencies if missing ---
+if [ ! -d "node_modules" ]; then
+    osascript -e 'display dialog "Installing SciScribe dependencies for the first time. This may take a minute…" buttons {"OK"} default button "OK" with title "SciScribe" giving up after 3'
+    npm install 2>/dev/null
+fi
+
+PORT=5173
+
+# --- Check if server is already running ---
+if curl -s --connect-timeout 1 "http://localhost:$PORT" >/dev/null 2>&1; then
+    open "http://localhost:$PORT"
+    exit 0
+fi
+
+# --- Start dev server in background ---
+npm run dev >/dev/null 2>&1 &
+SERVER_PID=$!
+
+# --- Wait for server to come up (max 15 seconds) ---
+for i in $(seq 1 30); do
+    if curl -s --connect-timeout 1 "http://localhost:$PORT" >/dev/null 2>&1; then
+        open "http://localhost:$PORT"
+        exit 0
+    fi
+    sleep 0.5
+done
+
+# --- If we got here, server didn't start ---
+kill $SERVER_PID 2>/dev/null
+osascript -e 'display dialog "SciScribe server failed to start.\n\nTry running \"npm run dev\" manually in Terminal from the project directory." buttons {"OK"} default button "OK" with title "SciScribe" with icon stop'
+exit 1
