@@ -8,6 +8,7 @@ import QuickSearchPopup from './components/QuickSearchPopup';
 import CitationLibraryModal from './components/CitationLibraryModal';
 import MentionReviewModal from './components/MentionReviewModal';
 import ReferenceResolverModal from './components/ReferenceResolverModal';
+import DoiLookupModal from './components/DoiLookupModal';
 
 import { INITIAL_MANUSCRIPT } from './data/sampleManuscript';
 import { extractPaperIdentifiers } from './utils/doiDetector';
@@ -73,6 +74,7 @@ export default function App() {
   const [isZoteroModalOpen, setIsZoteroModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isRefResolverOpen, setIsRefResolverOpen] = useState(false);
+  const [isDoiLookupOpen, setIsDoiLookupOpen] = useState(false);
   
   const [insertedCitation, setInsertedCitation] = useState(null);
 
@@ -185,6 +187,7 @@ export default function App() {
         onOpenQuickSearch={() => { setQuickSearchInitialQuery(''); setIsQuickSearchOpen(true); }}
         onOpenReviewModal={() => setIsReviewModalOpen(true)}
         onOpenRefResolver={() => setIsRefResolverOpen(true)}
+        onOpenDoiLookup={() => setIsDoiLookupOpen(true)}
       />
 
       <div className="app-body">
@@ -255,6 +258,14 @@ export default function App() {
         manuscript={manuscript}
         setManuscript={setManuscript}
         citationDatabase={citationDatabase}
+      />
+
+      <DoiLookupModal
+        isOpen={isDoiLookupOpen}
+        onClose={() => setIsDoiLookupOpen(false)}
+        onInsertCitation={handleInsertCitation}
+        onAddToReferenceSection={handleAddToReferenceSection}
+        onAddPaperToDatabase={handleAddPaperToDatabase}
       />
 
       <footer className="app-statusbar">

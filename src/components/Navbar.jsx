@@ -36,7 +36,8 @@ export default function Navbar({
   onOpenZoteroModal,
   onOpenQuickSearch,
   onOpenReviewModal,
-  onOpenRefResolver
+  onOpenRefResolver,
+  onOpenDoiLookup
 }) {
   const fileInputRef = useRef(null);
   const [saveMenuOpen, setSaveMenuOpen] = useState(false);
@@ -163,6 +164,9 @@ export default function Navbar({
         </button>
         <button className="btn btn-ghost" onClick={onOpenRefResolver} title="Convert & resolve citations between Numbered [1] and Inline (Author et al. DOI)">
           <ArrowLeftRight size={15} /> Convert / Resolve Refs
+        </button>
+        <button className="btn btn-ghost" onClick={onOpenDoiLookup} title="Look up a DOI and insert a formatted citation">
+          <BookOpen size={15} /> DOI Lookup
         </button>
         <button className="btn btn-ghost" onClick={onOpenQuickSearch} title="Search citations (⌥ Alt)">
           <Search size={15} />
